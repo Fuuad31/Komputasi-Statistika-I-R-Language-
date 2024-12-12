@@ -1,0 +1,243 @@
+1. plot(x,y,type="n",ylim=c(-2,2),xlim=c(-2,2),main
+     ="Logo Matahari")
+  x=c(-1.2,-1.2,1.2,1.2)
+  y=c(-1.2,1.2,1.2,-1.2)
+  polygon(x,y,col="orange", border = "orange")
+  y=c(0,-1.6,0,1.6)
+  x=c(-1.6,0,1.6,0)
+  polygon(x,y,col="orange", border = "orange")
+  
+  x=c(-1.15,-1.15,1.15,1.15)
+  y=c(-1.15,1.15,1.15,-1.15)
+  polygon(x,y,col="yellow", border = "yellow")
+  y=c(0,-1.5,0,1.5)
+  x=c(-1.5,0,1.5,0)
+  polygon(x,y,col="yellow", border = "yellow")
+  
+  x=c(-1.05,-1.05,1.05,1.05)
+  y=c(-1.05,1.05,1.05,-1.05)
+  polygon(x,y,col="orange", border = "orange")
+  y=c(0,-1.35,0,1.35)
+  x=c(-1.35,0,1.35,0)
+  polygon(x,y,col="orange", border = "orange")
+  
+  x1=c(-0.95,-0.95,-0.5)
+  y1=c(0.95,0.5,0.95)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(-0.95,-0.95,-0.5)
+  y1=c(-0.5,-0.95,-0.95)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(0.95,0.95,0.5)
+  y1=c(0.95,0.5,0.95)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(0.95,0.95,0.5)
+  y1=c(-0.5,-0.95,-0.95)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(-0.2,0,0.2)
+  y1=c(1.05,1.25,1.05)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(-0.2,0,0.2)
+  y1=c(-1.05,-1.25,-1.05)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(-1.05,-1.25,-1.05)
+  y1=c(-0.2,0,0.2)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  x1=c(1.05,1.25,1.05)
+  y1=c(-0.2,0,0.2)
+  polygon(x1,y1,col="yellow",border = "yellow")
+  
+  r=0.65
+  x0=0
+  y0=0
+  theta=seq(0,2*pi,length=1000)
+  a=x0+r*cos(theta)
+  b=y0+r*sin(theta)
+  polygon(a,b,col="yellow",border = "yellow")
+  
+  r=0.2
+  x0=0.3
+  y0=0.1
+  theta=seq(0,pi,length=800)
+  a=x0+r*cos(theta)
+  b=y0+r*sin(theta)
+  polygon(a,b,col="black",border = "black")
+  
+  r=0.2
+  x0=-0.3
+  y0=0.1
+  theta=seq(0,pi,length=800)
+  a=x0+r*cos(theta)
+  b=y0+r*sin(theta)
+  polygon(a,b,col="black",border = "black")
+  
+  r=0.4
+  x0=0
+  y0=-0.1
+  theta=seq(0,-pi,length=800)
+  a=x0+r*cos(theta)
+  b=y0+r*sin(theta)
+  polygon(a,b,col="red",border = "red")
+
+2. bangkit.weibul = function(n, alpha, betha){
+  set.seed(123)
+  U = runif(n, 0, 1)
+  x = ((log(1-U)/(-alpha*log(exp(1)))))^(1/betha)
+  return(x)
+}
+bangkit.weibul(100, 1,1)
+bangkit.weibul(100, 1,2)
+bangkit.weibul(100, 1,3.5)
+
+df <- data.frame( category=factor(c("betha1",
+                                        "betha2", "betha3")),
+                  value=(c(bangkit.weibul(100, 1,1),
+                         bangkit.weibul(100, 1,2), bangkit.weibul(100, 1,3.5))))
+# load library ggplot2 package
+library(ggplot2)
+
+# Basic density plot with custom color
+ggplot(df, aes(x=value, color=category)) +
+  
+  # color property for changing color of plot
+  # geom_density() function plots the density plot
+  geom_density()
+3. # Define the data 
+data <- array(data = c(109, 4 ,116, 84), dim = c(2, 2))
+
+# Function : find expected frequency
+expected_frequency <- function(data){
+  # Description: Function to find the expected frequency of the data points in the contingency table.
+  n_1 = data[1,1] + data[1,2]
+  n_2 = data[2,1] + data[2,2]
+  m_1 = data[1,1] + data[2,1]
+  m_2 = data[1,2] + data[2,2]
+  total = n_1+n_2
+  
+  F_11 = n_1*m_1/total
+  F_12 = n_1*m_2/total
+  F_21 = n_2*m_1/total
+  F_22 = n_2*m_2/total
+  
+  # Arguments: data (array): Data points in the contingency table.
+  ef = array(c(F_11, F_21, F_12, F_22), dim = c(2,2))
+  
+  # Returns: array: Expected frequency of the data points in the contingency table.
+  # Replace NA with the correct return statement
+  return(ef)
+}
+# Function : find chi-square value
+chi_square <- function(data){
+  # Description: Function to find the chi-square value of the data points in the contingency table.
+  ef = expected_frequency(data)
+  a = ((data[1,2] - ef[1,2])^2)/ef[1,2]
+  b = ((data[2,2] - ef[2,2])^2)/ef[2,2]
+  c = ((data[2,1] - ef[2,1])^2)/ef[2,1]
+  d = ((data[1,1] - ef[1,1])^2)/ef[1,1]
+  cs = a+b+c+d
+  # Arguments: data (array): Data points in the contingency table.
+  # Returns: float: Chi-square value of the data points in the contingency table.
+  
+  # You can use the function expected_frequency to calculate the expected frequency
+  # Replace NA with the correct return statement
+  return(cs)
+}
+
+# Function : find p-value
+p_value <- function(data){
+  # Description: Function to find the p-value of the data points in the contingency table.
+  # Arguments: data (array): Data points in the contingency table.
+  # Returns: float: P-value of the data points in the contingency table.
+  
+  # Hints : dof = degree of freedom (defined by calculating the number of rows and columns in the contingency table)
+  # You can use the function chi_square to calculate the chi-square value
+  p = 1- pchisq(chi_square(data), 1)
+  
+  # Replace NA with the correct return statement
+  return(p)
+}
+
+# Function : find critical value
+critical_value <- function(data, alpha){
+  # Description: Function to find the critical value of the data points in the contingency table.
+  # Arguments: data (array): Data points in the contingency table.
+  #            alpha (float): Significance level.
+  # Returns: float: Critical value of the data points in the contingency table.
+  df = (nrow(data)-1)*(ncol(data)-1)
+  cv = qchisq(alpha, df, lower.tail = FALSE)
+  # Your code ends here
+  
+  # Replace NA with the correct return statement
+  return(cv)
+}
+
+# Function : find Odds Ratio
+odds_ratio <- function(data){
+  # Description: Function to find the odds ratio of the data points in the contingency table.
+  # Arguments: data (array): Data points in the contingency table.
+  # Returns: float: Odds ratio of the data points in the contingency table.
+  or = (data[1,1] * data[2,2])/(data[1,2]*data[2,1])
+  
+  # Replace NA with the correct return statement
+  return(or)
+}
+
+# Function : find Confidence Interval for Odds Ratio
+confidence_interval <- function(data, alpha){
+  # Description: Function to find the confidence interval of the odds ratio of the data points in the contingency table.
+  # Arguments: data (array): Data points in the contingency table.
+  #            alpha (float): Significance level.
+  # Returns: list: Confidence interval of the odds ratio of the data points in the contingency table.
+  root = sqrt((1/data[1,1])+(1/data[1,2])+(1/data[2,1])+(1/data[2,2]))
+  ci_p = exp(log10(odds_ratio(data))+qnorm(alpha/2)*root)
+  ci_n = exp(log10(odds_ratio(data))-qnorm(alpha/2)*root)
+  
+  
+  # Replace NA with the correct return statement
+  return(list(ci_p, ci_n))
+}
+
+# Function : print the output
+output <- function(){
+  # Print the expected frequency
+  cat("Expected Frequency :\n")
+  cat(expected_frequency(data)[1], "\t", expected_frequency(data)[3], "\n")
+  cat(expected_frequency(data)[2], "\t", expected_frequency(data)[4], "\n")
+  
+  # Hasil Pengujian
+  cat("==============================================================\n")
+  cat("Hipotesis Uji\n")
+  cat("Hipotesis_0: Tidak ada hubungan antara makan sambal dan sakit perut\n")
+  cat("Hipotesis_1: Ada hubungan antara makan sambal dan sakit perut\n")
+  cat("==============================================================\n")
+  cat("Tingkat Signifikansi\n")
+  cat("alpha = 0.05\n")
+  cat("==============================================================\n")
+  cat("Statistik Uji\n")
+  cat("Chi-Square =", chi_square(data), "\n")
+  cat("P-Value =", p_value(data), "\n")
+  cat("Critical Value =", critical_value(data, 0.05), "\n")
+  cat("Odds Ratio =", odds_ratio(data), "\n")
+  cat("Lower Confidence Interval =", confidence_interval(data, 0.05)[[1]], "\n")
+  cat("Upper Confidence Interval =", confidence_interval(data, 0.05)[[2]], "\n")
+  cat("==============================================================\n")
+  cat("Kesimpulan\n")
+  if(p_value(data) < 0.05){
+    cat("Karena P-Value < alpha, maka hipotesis nol ditolak\n")
+    cat("Maka ada hubungan antara makan sambal dan sakit perut\n")
+  } else{
+    cat("Karena P-Value > alpha, maka hipotesis nol diterima\n")
+    cat("Maka tidak ada hubungan antara makan sambal dan sakit perut\n")
+  }
+  cat("==============================================================")
+}
+
+# Call the output function
+output()
+

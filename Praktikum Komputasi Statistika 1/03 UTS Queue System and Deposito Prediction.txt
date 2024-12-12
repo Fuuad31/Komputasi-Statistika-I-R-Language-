@@ -1,0 +1,467 @@
+1. simulate_queue = function(arrival_rate, service_rate, num_servers, num_customers){
+  # Nilai awal 
+  cust = 0*c(1:num_customers)
+  arrival = c()
+  r_1 = c()
+  r_2 = c()
+  interarrival = c()
+  duration = c()
+  server_get = c()
+  start = c()
+  end =c()
+  Ciq = 0*c(1:num_customers)
+  Cis = 0*c(1:num_customers)
+  waiting = c()
+  tis = c()
+  
+  Arrival = 0
+  Serv_time = 0
+  Interarrival = 0
+  Serv_start = c(0,0,0)
+  Serv_end = c(0,0,0)
+  Cust_in_queue = 0
+  server = c(0,0,0)
+  
+  
+  for (i in 1:num_customers){
+    cust[i] = i
+    # Set R1 and R2
+    set.seed(i)
+    r_1[i] = runif(1, 0, 1)
+    set.seed(i+3)
+    r_2[i] = runif(1, 0, 1)
+    
+    # Interarrival and service time
+    Interarrival = -(1/arrival_rate)*log(1-r_1[i])
+    Serv_time = -(1/service_rate)*log(1-r_2[i])
+    interarrival[i] = Interarrival
+    duration[i] = Serv_time
+    
+    # Arrival
+    Arrival = Arrival + Interarrival
+    arrival[i] = Arrival
+    
+    # Status server
+    for (s in 1:num_servers){
+      if (arrival[i]<Serv_end[s]){
+        server[s] = 1
+      } else {
+        server[s] = 0
+      }
+    }
+    
+    # Milih server
+    ## Liat server yang kosong
+    m = which(server == min(server), arr.ind = TRUE)
+    
+    ## Pilih Server terkecil dari server yang kosong
+    n = m[which(m == min(m), arr.ind = TRUE)]
+    #server[n] = 1
+    
+    
+    # Serv_start
+    if (arrival[i] < Serv_end[n]){
+      server_get[i] = which(Serv_end == min(Serv_end), arr.ind = TRUE)
+      Serv_start[n] =  Serv_end[which(Serv_end == min(Serv_end), arr.ind = TRUE)]
+    } else {
+      server_get[i] = n
+      Serv_start[n] = Arrival
+    }
+    Time_start = Serv_start[n]
+    start[i] = Time_start
+    
+    # Serv_end
+    Serv_end[server_get[i]] = Serv_start[n] + Serv_time
+    Time_end = Serv_end[server_get[i]]
+    end[i] = Time_end
+    
+    # Cust_in_queue
+    Ciq[i] = 0
+    for (a in 1:i){
+      if (arrival[i] < start[a]){
+        Ciq[i] = Ciq[i]+1
+      }
+    }
+    
+    # Cust_in_system
+    Cis[i] = 1
+    if (Ciq[i] != 0){
+      Cis[i] = Ciq[i]+num_servers
+    }else {
+      for (y in 1:num_servers){
+        Cis[i] = Cis[i]+server[y]
+      }
+    }
+    
+    # Time in Queue
+    waiting[i] = start[i]-arrival[i]
+    
+    # Time in Queue
+    tis[i] = end[i]-arrival[i]
+  }  
+  
+  avrg_cust_in_queue= mean(Ciq)
+  avrg_cust_in_system= mean(Cis)
+  avrg_waiting_time_in_queue= mean(waiting)
+  avrg_waiting_time_in_system= mean(tis)
+  
+  result = data.frame(
+    Cust = cust,
+    R1 = r_1,
+    Interarrival = interarrival,
+    Arrival = arrival,
+    Server = server_get,
+    ServStart = start,
+    R2 = r_2,
+    ServTime = duration,
+    ServEnd = end,
+    CustInQueue = Ciq,
+    CustInSystem = Cis,
+    TimeInQueue = waiting,
+    TimeInSystem = tis
+  )
+  return(list('simulation_result'= as_tibble(result), 'avg_customers_in_queue'= avrg_cust_in_queue,
+              'avg_customers_in_system'= avrg_cust_in_system, 'avg_waiting_time_in_queue'= avrg_waiting_time_in_queue, 
+              'avg_waiting_time_in_system'= avrg_waiting_time_in_system))
+}
+#simulate_queue(30, 10, 3, 16)
+x = simulate_queue(30, 10, 3, 30000)
+x
+write.csv(x, file = 'Result_21690.csv')
+
+2. partisi_char = function(x){
+  char = unlist(strsplit(x, ""))
+  return(char)
+}
+
+# Checking No Telp Function
+checking_telp = function(x){
+  invalid = FALSE
+  x = unlist(as.character(x))
+  
+  ## Jumlah char 12 atau 13
+  if (nchar(x) != 12 && nchar(x) != 13){
+    invalid = TRUE
+    return(invalid)
+  }
+  
+  ## 3 digit awal adalah 628
+  if (partisi_char(x)[1] != '6' || partisi_char(x)[2] != '2' || partisi_char(x)[3] != '8' ){
+    invalid = TRUE
+    return(invalid)
+  }
+  return(invalid)
+}
+
+# Checking sandi function
+checking_sandi = function(a){
+  invalid = FALSE
+  ## Jumlah char 12 atau 13
+  if (nchar(a) < 8 | nchar(a) > 12){
+    invalid = TRUE
+    return(invalid)
+  }
+  
+  ##Angka(48-57), Caps(65-90), little(97-122), karakter: !#$^&_(33, 35, 36, 38, 94, 95)
+  list_char = partisi_char(a)
+  angka = FALSE
+  caps = FALSE
+  little = FALSE
+  karakter = FALSE
+  for (item in list_char){
+    if (utf8ToInt(item)>=48 && utf8ToInt(item)<=57){
+      angka = TRUE
+    } else if (utf8ToInt(item)>=65 && utf8ToInt(item)<=90){
+      caps = TRUE
+    } else if (utf8ToInt(item)>=97 && utf8ToInt(item)<=122){
+      little = TRUE
+    } else if (utf8ToInt(item) == 33 | utf8ToInt(item) == 35 | utf8ToInt(item) == 36 
+               | utf8ToInt(item) == 38 | utf8ToInt(item) == 94 | utf8ToInt(item) == 95){
+      karakter = TRUE
+    }
+  }
+  
+  if(angka != TRUE | caps != TRUE | little != TRUE | karakter != TRUE){
+    invalid = TRUE
+    return(invalid)
+  } 
+  
+  return(invalid)
+}
+
+# Checking email function
+checking_email = function(b){
+  invalid = FALSE
+  
+  ## Any '@'
+  if (grepl('@', b) == FALSE){
+    invalid = TRUE
+    return(invalid)
+  } 
+  
+  ## Split
+  split = unlist(strsplit(b, '@'))
+  if (split[2] != 'gmail.com' && split[2] != 'yahoo.co.id'){
+    invalid = TRUE
+    return(invalid)
+  }
+  
+  if (nchar(split[1]) > 30){
+    invalid = TRUE
+    return(invalid)
+  }
+  
+  ## list char
+  list_char = partisi_char(split[1])
+  for (item in list_char){
+    if (utf8ToInt(item)<48){
+      invalid = TRUE
+      return(invalid)
+    }else if (utf8ToInt(item)>57 && utf8ToInt(item)<65){
+      invalid = TRUE
+      return(invalid)
+    }else if (utf8ToInt(item)>90 && utf8ToInt(item)<97){
+      invalid = TRUE
+      return(invalid)
+    }else if (utf8ToInt(item)>122){
+      invalid = TRUE
+      return(invalid)
+    }
+  }
+  
+  return(invalid)
+}
+
+# Checking validation
+checking_valid = function(x, a, b){
+  # Define Invalid raise
+  invalid = FALSE
+  
+  # Checking telp
+  if (invalid == FALSE){
+    invalid = checking_telp(x)
+    if (invalid == TRUE){
+      return(invalid)
+    } else {
+      invalid = FALSE
+    }
+  } 
+  
+  # Checking sandi 
+  if (invalid == FALSE){
+    invalid = checking_sandi(a)
+    if (invalid == TRUE){
+      return(invalid)
+    } else {
+      invalid = FALSE
+    }
+  }
+  
+  # Checking email 
+  if (invalid == FALSE){
+    invalid = checking_email(b)
+    if (invalid == TRUE){
+      return(invalid)
+    } 
+  }
+
+  return(invalid)
+}
+
+# Import Data will e checked
+Nomor_2_Laprak_UTS_Komstat <- read_excel("E:/Laprak Komstat I/ Nomor 2 Laprak UTS Komstat.xlsx")
+
+validation = Nomor_2_Laprak_UTS_Komstat
+
+output = c()
+for (i in 1:nrow(validation)){
+  validation[i,2] = unique(unlist(validation[i,2]))
+  invalid = checking_valid(unique(unlist(validation[i,2])), unique(unlist(validation[i,3])), unique(unlist(validation[i,1])))
+  if (invalid == TRUE){
+    output[i] = "TIDAK VALID"
+  }else if (invalid == FALSE){
+    output[i] = "VALID"
+  }
+}
+
+data_output = data.frame(OUTPUT = output)
+
+3. library(jsonlite)
+library(readxl)
+
+#Membaca JSON file berupa koordinat masing-masing wilayah
+yourListName <- fromJSON("E:/Laprak Komstat I/No_3.json")
+
+#definisikan tanggal sesuai NIF masing-masing
+yourDate = "2021-01-15" 
+
+#Membaca dataset dengan extension xlsx dan mempersiapkan data untuk dilakukan visualisasi
+#Kode Anda dimulai di sini
+data <- read_excel("E:/Laprak Komstat I/No_3.xlsx",
+                   sheet = "Kasus Aktif Covid-19")
+
+data_population <- read_excel("E:/Laprak Komstat I/No_3.xlsx", 
+                                sheet = "Jumlah Penduduk")
+
+data_new = data[as.character(data$Tanggal) == yourDate, ]
+
+#Kode Anda berakhir di sini
+
+#Membagi jendela gambar menjadi dua bagian, dengan 2 baris dan 1 kolom.
+par(mfrow = c(2, 1))
+
+#Membuat Pemetaan Geografis
+#Tambahkan argumen "main" untuk memberi judul pada grafik
+#Jangan merubah kode yang sudah ada (termasuk jangan mengisi NULL), cukup tambahkan argumen "main"
+plot(NULL, main= "Peta Persebaran Kasus Aktif Covid-19 di Provinsi Jawa Barat pada Tanggal 2021-01-15", xlab = "", ylab = "", xlim = c(106.3706, 108.8338), ylim = c(-8.10015, -5.63695))
+#Kode Anda dimulai di sini
+num_variable = ncol(data)
+highest = 0
+for (region in 2:num_variable){
+  num_cases = data_new[ , region]
+  population = data_population[region-1, 2]
+  presentase = num_cases/population
+  if (highest < presentase){
+    highest = presentase
+  }
+  
+  coor = as.data.frame(yourListName[region-1])
+  x=as.matrix(coor[1])
+  y=as.matrix(coor[2])
+  if (presentase>(0.1/100)){
+    polygon(x,y,col="red", border = 'white')
+  }else if (presentase<(0.1/100) && presentase >(0.01/100)){
+    polygon(x,y,col="yellow", border = 'white')
+  }else if (presentase <(0.01/100)){
+    polygon(x,y,col="green", border = 'white')
+  }
+  
+}
+
+#Kode Anda berakhir di sini
+
+
+#Membuat Diagram Garis
+#Kode Anda dimulai di sini
+get_index = which(as.character(data$Tanggal) == yourDate, arr.ind = TRUE)
+data_highest_precent = data[(get_index-30):get_index , c('Tanggal',colnames(highest))]
+
+plot(data_highest_precent, type="l",ylab = 'Jumlah Kasus Covid-19', main="Jumlah Kasus Aktif Covid-19 di Kota Depok Selama Satu Bulan Terakhir")
+#Kode Anda berakhir di sini
+
+4. #################### For Tabel
+train <- read_excel("E:/Laprak Komstat I/train.xlsx")
+test <- read_excel("E:/Laprak Komstat I/test.xlsx")
+
+
+df = train
+
+table_freq = function(x,y){
+  matriks = c()
+  rows = list()
+  coloumns = unique(x)
+  for (i in 1:length(coloumns)){
+    df_new = y[x == coloumns[i]]
+    rows = unique(df_new)
+    rows = sort(rows)
+    for (j in 1:length(rows)){
+      matriks[length(rows)*(i-1)+j] = count(df_new[df_new == rows[j]])
+    }
+  }
+  data = matrix(
+    matriks, nrow = length(rows), ncol = length(coloumns))
+  
+  tabel = as.table(data)
+  rownames(tabel) = rows
+  colnames(tabel) = coloumns
+  return(tabel)
+  
+}
+
+# Def Freq Table for each variable
+job = table_freq(train$deposito, train$job)
+marital = table_freq(train$deposito, train$marital)
+education = table_freq(train$deposito, train$education)
+housing = table_freq(train$deposito, train$housing)
+loan = table_freq(train$deposito, train$loan)
+contact = table_freq(train$deposito, train$contact)
+month = table_freq(train$deposito, train$month)
+dow = table_freq(train$deposito, train$day_of_week)
+previous = table_freq(train$deposito, train$previous)
+poutcome = table_freq(train$deposito, train$poutcome)
+
+###################### For Predict
+
+library(dplyr)
+
+# Call the dataset
+df_train = train
+df_test = test 
+
+## Define target variabel
+target = 'deposito'
+
+predict = function(train, test){
+  # Number of variables in data
+  num_variables_train = ncol(train)
+  num_variables_test = ncol(test)-1
+  
+  # Probability each value in target variable
+  ## Values in target variable
+  values = unique(unlist(train[target]))
+  prob_target = NULL
+  for (value in values){
+    total_rows = nrow(train)
+    df_new = filter(train, deposito == value)
+    df_new = df_new[target]
+    prob_target[value] = nrow(df_new)/total_rows
+  }
+  
+  
+  # Check condition each rows in test
+  for (i in 1:nrow(test)){
+    ## Calculate P(kondisi)
+    prop_condition = 1
+    for (j in 1:num_variables_test){
+      prop_condition = prop_condition*(nrow(train[train[j] == unique(unlist(test[i,j])),])/nrow(train))
+    }
+    
+    ## Calculate probability condition if (each values in target variable)
+    prop_condition_target_set = NULL
+    for (value in values){
+      prop_condition_target_set[value] = 1
+      df_train_new = filter(train, deposito == value)
+      df_train_new = as.data.frame(df_train_new)
+      ### Calculate P(Kondisi|Target=value)
+      for (j in 1:num_variables_test){
+        prop_condition_target_set[value] = prop_condition_target_set[value]*(nrow(df_train_new[df_train_new[j] == unique(unlist(test[i,j])),])/nrow(df_train_new))
+      }
+      prop_condition_target_set[value] = prop_condition_target_set[value]*prob_target[value]/prop_condition
+      
+    }
+    
+    ## Predict Prop Fix
+    best_prob = 0
+    best_predict = as.list(NULL)
+    prop_fix = NULL
+
+    for (value in values){
+      prop_fix[value] = prop_condition_target_set[value]
+      if (unlist(unique(prop_fix[value]) > best_prob)){
+        best_predict = value
+        best_prob = prop_fix[value]
+      }
+    
+    }
+    test[i, target] = best_predict
+  }
+  
+  return(test)                      
+  
+  
+}
+
+hasil = predict(df_train, df_test)
+hasil
+count(hasil$deposito)
+
